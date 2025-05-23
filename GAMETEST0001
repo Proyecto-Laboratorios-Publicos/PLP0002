@@ -1,0 +1,56 @@
+import os
+import random
+import time
+
+# Configuración del juego
+laguna_ancho = 10
+laguna_alto = 10
+obstaculos = 10
+
+# Inicializar la laguna
+laguna = [["-" for _ in range(laguna_ancho)] for _ in range(laguna_alto)]
+
+# Colocar obstáculos aleatoriamente
+for _ in range(obstaculos):
+    x = random.randint(0, laguna_ancho - 1)
+    y = random.randint(0, laguna_alto - 1)
+    laguna[y][x] = "*"
+
+# Posición inicial del pato
+pato_x = laguna_ancho // 2
+pato_y = laguna_alto // 2
+
+# Juego principal
+while True:
+    # Dibujar la laguna
+    os.system("cls" if os.name == "nt" else "clear")
+    for y in range(laguna_alto):
+        for x in range(laguna_ancho):
+            if x == pato_x and y == pato_y:
+                print("P", end=" ")
+            elif laguna[y][x] == "*":
+                print("*", end=" ")
+            else:
+                print("-", end=" ")
+        print()
+
+    # Pedir movimiento al usuario
+    movimiento = input("Ingrese movimiento (W, A, S, D): ")
+
+    # Actualizar posición del pato
+    if movimiento == "W" and pato_y > 0 and laguna[pato_y - 1][pato_x] != "*":
+        pato_y -= 1
+    elif movimiento == "S" and pato_y < laguna_alto - 1 and laguna[pato_y + 1][pato_x] != "*":
+        pato_y += 1
+    elif movimiento == "A" and pato_x > 0 and laguna[pato_y][pato_x - 1] != "*":
+        pato_x -= 1
+    elif movimiento == "D" and pato_x < laguna_ancho - 1 and laguna[pato_y][pato_x + 1] != "*":
+        pato_x += 1
+
+    # Chequear si el pato chocó con un obstáculo
+    if laguna[pato_y][pato_x] == "*":
+        print("¡Has chocado con un obstáculo! Juego terminado.")
+        break
+
+    # Agregar una pausa para ver el movimiento
+    time.sleep(0.5)
