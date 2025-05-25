@@ -1,0 +1,100 @@
+import os
+import random
+import time
+
+# Configuración del juego
+castillo_ancho = 20
+castillo_alto = 15
+héroe_x = 1
+héroe_y = 1
+dragones = []
+recompensas = []
+puertas = []
+claves = []
+
+# Inicializar el castillo
+castillo = [["-" for _ in range(castillo_ancho)] for _ in range(castillo_alto)]
+
+# Colocar dragones aleatoriamente
+for _ in range(5):
+    x = random.randint(0, castillo_ancho - 1)
+    y = random.randint(0, castillo_alto - 1)
+    dragones.append((x, y))
+    castillo[y][x] = "D"
+
+# Colocar recompensas aleatoriamente
+for _ in range(5):
+    x = random.randint(0, castillo_ancho - 1)
+    y = random.randint(0, castillo_alto - 1)
+    recompensas.append((x, y))
+    castillo[y][x] = "R"
+
+# Colocar puertas aleatoriamente
+for _ in range(5):
+    x = random.randint(0, castillo_ancho - 1)
+    y = random.randint(0, castillo_alto - 1)
+    puertas.append((x, y))
+    castillo[y][x] = "P"
+
+# Colocar claves aleatoriamente
+for _ in range(5):
+    x = random.randint(0, castillo_ancho - 1)
+    y = random.randint(0, castillo_alto - 1)
+    claves.append((x, y))
+    castillo[y][x] = "K"
+
+# Juego principal
+while True:
+    # Dibujar el castillo
+    os.system("cls" if os.name == "nt" else "clear")
+    for y in range(castillo_alto):
+        for x in range(castillo_ancho):
+            if x == héroe_x and y == héroe_y:
+                print("H", end=" ")
+            elif (x, y) in dragones:
+                print("D", end=" ")
+            elif (x, y) in recompensas:
+                print("R", end=" ")
+            elif (x, y) in puertas:
+                print("P", end=" ")
+            elif (x, y) in claves:
+                print("K", end=" ")
+            else:
+                print("-", end=" ")
+        print()
+
+    # Pedir movimiento al usuario
+    movimiento = input("Ingrese movimiento (W, A, S, D): ")
+
+    # Actualizar posición del héroe
+    if movimiento == "W" and héroe_y > 0:
+        héroe_y -= 1
+    elif movimiento == "S" and héroe_y < castillo_alto - 1:
+        héroe_y += 1
+    elif movimiento == "A" and héroe_x > 0:
+        héroe_x -= 1
+    elif movimiento == "D" and héroe_x < castillo_ancho - 1:
+        héroe_x += 1
+
+    # Chequear si el héroe chocó con un dragón
+    if (héroe_x, héroe_y) in dragones:
+        print("¡Has chocado con un dragón! Juego terminado.")
+        break
+
+    # Chequear si el héroe encontró una recompensa
+    if (héroe_x, héroe_y) in recompensas:
+        print("¡Has encontrado una recompensa!")
+        recompensas.remove((héroe_x, héroe_y))
+
+    # Chequear si el héroe encontró una puerta
+    if (héroe_x, héroe_y) in puertas:
+        print("¡Has encontrado una puerta!")
+        puertas.remove((héroe_x, héroe_y))
+
+    # Chequear si el héroe encontró una clave
+    if (héroe_x, héroe_y) in claves:
+        print("¡Has encontrado una clave!")
+        claves.remove((héroe_x, héroe_y))
+
+    # Agregar una pausa para ver el movimiento
+    time.sleep(0.5)
