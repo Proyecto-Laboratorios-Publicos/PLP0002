@@ -1,0 +1,110 @@
+# Importar bibliotecas necesarias
+import pygame
+import sys
+import random
+
+# Inicializar Pygame
+pygame.init()
+
+# Definir constantes
+WIDTH, HEIGHT = 800, 600
+PLAYER_SIZE = 50
+ENEMY_SIZE = 50
+SPEED = 5
+
+# Crear ventana
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+# Definir colores
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+
+# Definir clases
+class Player(pygame.Rect):
+    def __init__(self):
+        super().__init__(WIDTH / 2, HEIGHT / 2, PLAYER_SIZE, PLAYER_SIZE)
+        self.speed_x = 0
+        self.speed_y = 0
+
+    def move(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            self.speed_y = -SPEED
+        elif keys[pygame.K_DOWN]:
+            self.speed_y = SPEED
+        else:
+            self.speed_y = 0
+
+        if keys[pygame.K_LEFT]:
+            self.speed_x = -SPEED
+        elif keys[pygame.K_RIGHT]:
+            self.speed_x = SPEED
+        else:
+            self.speed_x = 0
+
+        self.x += self.speed_x
+        self.y += self.speed_y
+
+        if self.x < 0:
+            self.x = 0
+        elif self.x > WIDTH - PLAYER_SIZE:
+            self.x = WIDTH - PLAYER_SIZE
+
+        if self.y < 0:
+            self.y = 0
+        elif self.y > HEIGHT - PLAYER_SIZE:
+            self.y = HEIGHT - PLAYER_SIZE
+
+class Enemy(pygame.Rect):
+    def __init__(self):
+        super().__init__(random.randint(0, WIDTH - ENEMY_SIZE), random.randint(0, HEIGHT - ENEMY_SIZE), ENEMY_SIZE, ENEMY_SIZE)
+
+    def move(self):
+        self.x += random.randint(-2, 2)
+        self.y += random.randint(-2, 2)
+
+        if self.x < 0:
+            self.x = 0
+        elif self.x > WIDTH - ENEMY_SIZE:
+            self.x = WIDTH - ENEMY_SIZE
+
+        if self.y < 0:
+            self.y = 0
+        elif self.y > HEIGHT - ENEMY_SIZE:
+            self.y = HEIGHT - ENEMY_SIZE
+
+# Crear objetos
+player = Player()
+enemies = [Enemy() for _ in range(10)]
+
+# Bucle principal
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    # Dibujar fondo
+    screen.fill(WHITE)
+
+    # Dibujar jugadores y enemigos
+    for enemy in enemies:
+        pygame.draw.rect(screen, RED, enemy)
+
+    pygame.draw.rect(screen, (0, 0, 255), player)
+
+    # Actualizar objetos
+    player.move()
+    for enemy in enemies:
+        enemy.move()
+
+    # Comprobar colisiones
+    for enemy in enemies:
+        if player.colliderect(enemy):
+            print("¡Has sido atacado por un enemigo!")
+            player.x = WIDTH / 2
+            player.y = HEIGHT / 2
+
+    # Actualizar pantalla
+    pygame.display.flip()
+    pygame.time.Clock().tick(60)
