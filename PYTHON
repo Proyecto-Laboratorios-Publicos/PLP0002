@@ -1,0 +1,11 @@
+PRINT("Welcome")
+# Python tiene una sintaxis simple, lo que significa que es fácil de escribir, leer y aprender.
+
+# Las intrucción prin() es la forma más fácil de enviar un mensaje a la pantalla u otro dispositivo de vesiaulización.
+
+prin("Level Up!")
+
+# Los números no requieren comillas.
+
+print(360)
+
