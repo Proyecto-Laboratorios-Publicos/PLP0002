@@ -10,12 +10,15 @@ def obtener_velas_binance(simbolo="BTCUSDT", intervalo="1h", limite=100):
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             data = response.json()
+            if not data or isinstance(data, dict): # Si Binance devuelve error o vacío
+                return pd.DataFrame()
+            
             df = pd.DataFrame(data, columns=[
                 'timestamp', 'open', 'high', 'low', 'close', 'volume',
                 'close_time', 'quote_asset_volume', 'number_of_trades',
                 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'
             ])
-            # Limpieza y conversión de tipos
+            # Limpieza y conversión estricta de tipos
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
             for col in ['open', 'high', 'low', 'close', 'volume']:
                 df[col] = df[col].astype(float)
