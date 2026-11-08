@@ -48,7 +48,11 @@ if mercado == "Criptomonedas (Binance)":
         st.sidebar.metric("Dominancia BTC", f"{cg_data.get('btc_dominance', 0):.1f}%")
         st.sidebar.metric("Dominancia ETH", f"{cg_data.get('eth_dominance', 0):.1f}%")
 else:
-    ticker = st.sidebar.text_input("Ticker (Ej: EURUSD=X, AAPL, GC=F)", value="EURUSD=X").upper()
+    # Obtenemos la lista de pares de Forex y activos tradicionales
+    lista_forex = obtener_pares_forex()
+    default_forex_idx = lista_forex.index("EURUSD=X") if "EURUSD=X" in lista_forex else 0
+    
+    ticker = st.sidebar.selectbox("Ticker / Par (yfinance)", lista_forex, index=default_forex_idx)
     periodo = st.sidebar.selectbox("Período histórico", ["1d", "5d", "1mo", "6mo", "1y"], index=1)
     intervalo_yf = st.sidebar.selectbox("Intervalo yf", ["1m", "5m", "1h", "1d"], index=2)
     
