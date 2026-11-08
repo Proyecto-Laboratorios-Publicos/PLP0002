@@ -83,3 +83,13 @@ def obtener_pares_binance():
     except Exception as e:
         print(f"Error obteniendo pares de Binance: {e}")
     return ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "XRPUSDT"]
+
+
+def obtener_pares_forex():
+    """Retorna una lista de tickers populares de Forex, Índices y Commodities para yfinance."""
+    return [
+        "EURUSD=X", "GBPUSD=X", "USDJPY=X", "AUDUSD=X", "USDCAD=X", 
+        "NZDUSD=X", "USDCHF=X", "EURJPY=X", "GBPJPY=X", "EURGBP=X",
+        "GC=F", "SI=F", "CL=F", "BTC-USD", "ETH-USD",
+        "^IXIC", "^DJI", "^GSPC", "AAPL", "MSFT", "TSLA", "NVDA", "AMZN"
+    ]
