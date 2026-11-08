@@ -56,17 +56,22 @@ else:
         df = obtener_datos_forex(ticker=ticker, periodo=periodo, intervalo=intervalo_yf)
 
 # --- VALIDACIÓN Y CÁLCULOS TÉCNICOS ---
-if df.empty:
-    st.error("⚠️ No se pudieron recuperar datos con los parámetros seleccionados.")
+if df is None or df.empty:
+    st.error("⚠️ No se pudieron recuperar datos para este activo en este momento. Prueba seleccionando otra temporalidad o par.")
+    st.stop()
 else:
     # Aplicar motor de indicadores técnicos avanzados
     df = calcular_indicadores(df)
+
+    if len(df) < 2:
+        st.warning("⚠️ El activo seleccionado no devolvió suficientes velas para el intervalo configurado. Prueba ampliando el período o la cantidad de velas.")
+        st.stop()
 
     precio_actual = df['close'].iloc[-1]
     precio_anterior = df['close'].iloc[-2]
     cambio_pct = ((precio_actual - precio_anterior) / precio_anterior) * 100
     max_periodo = df['high'].max()
-    min_periodo = df['low'].min()
+    min_periodo = df['low'].max()
     volumen_total = df['volume'].sum()
     rsi_actual = df['rsi14'].iloc[-1] if 'rsi14' in df else 50
 
