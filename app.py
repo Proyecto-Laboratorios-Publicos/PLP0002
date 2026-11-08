@@ -51,7 +51,6 @@ if mercado == "Criptomonedas (Binance)":
     
     with st.spinner(f"Consultando datos de {simbolo} en Binance..."):
         df = obtener_velas_binance(simbolo=simbolo, intervalo=intervalo, limite=limite)
-
 else:
     # Obtenemos la lista de pares de Forex y activos tradicionales
     lista_forex = obtener_pares_forex()
@@ -63,18 +62,6 @@ else:
     
     with st.spinner(f"Obteniendo cotización de {ticker}..."):
         df = obtener_datos_forex(ticker=ticker, periodo=periodo, intervalo=intervalo_yf)
-else:
-    # Obtenemos la lista de pares de Forex y activos tradicionales
-    lista_forex = obtener_pares_forex()
-    default_forex_idx = lista_forex.index("EURUSD=X") if "EURUSD=X" in lista_forex else 0
-    
-    ticker = st.sidebar.selectbox("Ticker / Par (yfinance)", lista_forex, index=default_forex_idx)
-    periodo = st.sidebar.selectbox("Período histórico", ["1d", "5d", "1mo", "6mo", "1y"], index=1)
-    intervalo_yf = st.sidebar.selectbox("Intervalo yf", ["1m", "5m", "1h", "1d"], index=2)
-    
-    with st.spinner(f"Obteniendo cotización de {ticker}..."):
-        df = obtener_datos_forex(ticker=ticker, periodo=periodo, intervalo=intervalo_yf)
-
 # --- VALIDACIÓN Y CÁLCULOS TÉCNICOS ---
 if df is None or df.empty:
     st.error("⚠️ No se pudieron recuperar datos para este activo en este momento. Prueba seleccionando otra temporalidad o par.")
