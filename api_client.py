@@ -56,3 +56,21 @@ def obtener_datos_coingecko_global():
     except Exception as e:
         print(f"Error conectando a CoinGecko: {e}")
     return {}
+
+def obtener_pares_binance():
+    """Obtiene la lista de pares de criptomonedas activos en Binance (ej: USDT)."""
+    url = "https://api.binance.com/api/v3/exchangeInfo"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            # Filtramos solo los pares que terminan en USDT y están activos
+            pares = [
+                s['symbol'] for s in data.get('symbols', []) 
+                if s['quoteAsset'] == 'USDT' and s['status'] == 'TRADING'
+            ]
+            return sorted(pares)
+    except Exception as e:
+        print(f"Error obteniendo pares de Binance: {e}")
+    # Fallback por si falla la conexión
+    return ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "XRPUSDT"]
