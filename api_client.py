@@ -3,36 +3,43 @@ import pandas as pd
 import yfinance as yf
 
 def obtener_velas_binance(simbolo="BTCUSDT", intervalo="1h", limite=100):
-    """Obtiene datos de velas (OHLCV) desde la API pública de Binance con cabeceras de navegador."""
+    """Obtiene datos de velas (OHLCV) desde la API pública de Binance (Documentación oficial v3/klines)."""
     url = "https://api.binance.com/api/v3/klines"
     params = {
-        "symbol": simbolo.upper(),
-        "interval": intervalo,
-        "limit": limite
+        "symbol": simbolo.strip().upper(),
+        "interval": intervalo.strip(),
+        "limit": int(limite)
     }
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
+    
     try:
-        response = requests.get(url, params=params, headers=headers, timeout=15)
+        response = requests.get(url, params=params, timeout=10)
+        
+        # Si la respuesta es exitosa
         if response.status_code == 200:
             data = response.json()
             if not isinstance(data, list) or len(data) == 0:
                 return pd.DataFrame()
             
+            # Estructura oficial de klines de Binance:
+            # [ [Open time, Open, High, Low, Close, Volume, Close time, ...], ... ]
             df = pd.DataFrame(data, columns=[
                 'timestamp', 'open', 'high', 'low', 'close', 'volume',
                 'close_time', 'quote_asset_volume', 'number_of_trades',
                 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'
             ])
             
+            # Limpieza y conversión de tipos
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
             for col in ['open', 'high', 'low', 'close', 'volume']:
                 df[col] = df[col].astype(float)
                 
             return df[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
+        else:
+            print(f"Binance API Error Status: {response.status_code}, Response: {response.text}")
+            
     except Exception as e:
-        print(f"Error conectando a Binance: {e}")
+        print(f"Excepción conectando a Binance: {e}")
+        
     return pd.DataFrame()
 
 def obtener_datos_forex(ticker="EURUSD=X", periodo="5d", intervalo="1h"):
@@ -52,9 +59,8 @@ def obtener_datos_forex(ticker="EURUSD=X", periodo="5d", intervalo="1h"):
 def obtener_datos_coingecko_global():
     """Obtiene métricas globales del mercado cripto desde CoinGecko."""
     url = "https://api.coingecko.com/api/v3/global"
-    headers = {"User-Agent": "Mozilla/5.0"}
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, timeout=10)
         if response.status_code == 200:
             data = response.json().get("data", {})
             return {
@@ -68,11 +74,10 @@ def obtener_datos_coingecko_global():
     return {}
 
 def obtener_pares_binance():
-    """Obtiene la lista de pares de criptomonedas activos en Binance (ej: USDT)."""
+    """Obtiene la lista oficial de pares de criptomonedas activos en Binance (ej: USDT)."""
     url = "https://api.binance.com/api/v3/exchangeInfo"
-    headers = {"User-Agent": "Mozilla/5.0"}
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, timeout=10)
         if response.status_code == 200:
             data = response.json()
             pares = [
@@ -83,7 +88,6 @@ def obtener_pares_binance():
     except Exception as e:
         print(f"Error obteniendo pares de Binance: {e}")
     return ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "XRPUSDT"]
-
 
 def obtener_pares_forex():
     """Retorna una lista de tickers populares de Forex, Índices y Commodities para yfinance."""
