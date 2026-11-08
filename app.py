@@ -61,10 +61,25 @@ else:
     # Obtenemos la lista de pares de Forex y activos tradicionales
     lista_forex = obtener_pares_forex()
     default_forex_idx = lista_forex.index("EURUSD=X") if "EURUSD=X" in lista_forex else 0
-    
+
     ticker = st.sidebar.selectbox("Ticker / Par (yfinance)", lista_forex, index=default_forex_idx)
     periodo = st.sidebar.selectbox("Período histórico", ["1d", "5d", "1mo", "6mo", "1y"], index=1)
     intervalo_yf = st.sidebar.selectbox("Intervalo yf", ["1m", "5m", "1h", "1d"], index=2)
+
+    with st.spinner(f"Obteniendo cotización de {ticker}..."):
+        df = obtener_datos_forex(ticker=ticker, periodo=periodo, intervalo=intervalo_yf)
+
+    # Comprobación de estado de mercado tradicional (yfinance)
+    # Si el último timestamp de la vela tiene más de unas horas o es fin de semana, avisamos
+    if not df.empty and 'timestamp' in df.columns:
+        ultimo_registro = pd.to_datetime(df['timestamp'].iloc[-1])
+        ahora = datetime.datetime.now()
+        diferencia_horas = (ahora - ultimo_registro.tz_localize(None)).total_seconds() / 3600
+
+        if diferencia_horas > 6 or ahora.weekday() >= 5:
+            st.sidebar.warning("⚠️ **Mercado Cerrado:** Los precios de este activo están pausados hasta la apertura de la próxima sesión bursátil.")
+        else:
+            st.sidebar.success("🟢 **Mercado Abierto:** Cotizaciones actualizándose en la sesión actual.")
     
     with st.spinner(f"Obteniendo cotización de {ticker}..."):
         df = obtener_datos_forex(ticker=ticker, periodo=periodo, intervalo=intervalo_yf)
