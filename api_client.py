@@ -3,32 +3,30 @@ import pandas as pd
 import yfinance as yf
 
 def obtener_velas_binance(simbolo="BTCUSDT", intervalo="1h", limite=100):
-    """Obtiene datos de velas (OHLCV) desde la API pública de Binance (Documentación oficial v3/klines)."""
-    url = "https://api.binance.com/api/v3/klines"
+    """Obtiene datos de velas (OHLCV) desde la API pública de Binance usando el endpoint de datos."""
+    url = "https://data-api.binance.vision/api/v3/klines"
     params = {
         "symbol": simbolo.strip().upper(),
         "interval": intervalo.strip(),
         "limit": int(limite)
     }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
     
     try:
-        response = requests.get(url, params=params, timeout=10)
-        
-        # Si la respuesta es exitosa
+        response = requests.get(url, params=params, headers=headers, timeout=10)
         if response.status_code == 200:
             data = response.json()
             if not isinstance(data, list) or len(data) == 0:
                 return pd.DataFrame()
             
-            # Estructura oficial de klines de Binance:
-            # [ [Open time, Open, High, Low, Close, Volume, Close time, ...], ... ]
             df = pd.DataFrame(data, columns=[
                 'timestamp', 'open', 'high', 'low', 'close', 'volume',
                 'close_time', 'quote_asset_volume', 'number_of_trades',
                 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'
             ])
             
-            # Limpieza y conversión de tipos
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
             for col in ['open', 'high', 'low', 'close', 'volume']:
                 df[col] = df[col].astype(float)
@@ -36,7 +34,6 @@ def obtener_velas_binance(simbolo="BTCUSDT", intervalo="1h", limite=100):
             return df[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
         else:
             print(f"Binance API Error Status: {response.status_code}, Response: {response.text}")
-            
     except Exception as e:
         print(f"Excepción conectando a Binance: {e}")
         
