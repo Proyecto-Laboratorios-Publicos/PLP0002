@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from api_client import obtener_velas_binance, obtener_datos_forex, obtener_datos_coingecko_global, obtener_pares_binance
+from api_client import obtener_velas_binance, obtener_datos_forex, obtener_datos_coingecko_global, obtener_pares_binance, obtener_pares_forex
 from indicators import calcular_indicadores
 
 # Configuración inicial de la página
