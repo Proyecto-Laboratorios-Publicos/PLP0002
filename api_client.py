@@ -3,10 +3,11 @@ import pandas as pd
 import yfinance as yf
 
 def obtener_velas_binance(simbolo="BTCUSDT", intervalo="1h", limite=100):
-    """Obtiene datos de velas (OHLCV) desde la API pública de Binance."""
+    """Obtiene datos de velas (OHLCV) desde la API pública de Binance con headers de navegador."""
     url = f"https://api.binance.com/api/v3/klines?symbol={simbolo.upper()}&interval={intervalo}&limit={limite}"
+    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200:
             data = response.json()
             if not isinstance(data, list) or len(data) == 0:
