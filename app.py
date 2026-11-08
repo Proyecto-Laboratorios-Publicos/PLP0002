@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import datetime
 from plotly.subplots import make_subplots
 from api_client import obtener_velas_binance, obtener_datos_forex, obtener_datos_coingecko_global, obtener_pares_binance, obtener_pares_forex
 from indicators import calcular_indicadores
@@ -25,6 +26,11 @@ st.markdown("""
 
 st.title("🛡️ Crypto & Forex Sentinel")
 st.markdown("Centro de comando y vigilancia de mercados en tiempo real. Análisis técnico avanzado y alertas automatizadas.")
+
+# Sello de tiempo del último ciclo de refresco automático
+tiempo_actual = datetime.datetime.now().strftime("%H:%M:%S")
+st.caption(f"🔄 **Estado del Autómata:** Última sincronización en vivo a las **{tiempo_actual}** (actualizando cada 5 segundos)")
+st.markdown("---")
 
 # --- BARRA LATERAL (CONTROLES) ---
 st.sidebar.header("⚙️ Configuración de Vigilancia")
