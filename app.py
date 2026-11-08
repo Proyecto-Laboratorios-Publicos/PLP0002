@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from api_client import obtener_velas_binance, obtener_datos_forex, obtener_datos_coingecko_global
+from api_client import obtener_velas_binance, obtener_datos_forex, obtener_datos_coingecko_global, obtener_pares_binance
 from indicators import calcular_indicadores
 
 # Configuración inicial de la página
@@ -27,11 +27,18 @@ st.sidebar.header("⚙️ Configuración de Vigilancia")
 mercado = st.sidebar.selectbox("Seleccionar Mercado", ["Criptomonedas (Binance)", "Forex / Acciones (yfinance)"])
 
 if mercado == "Criptomonedas (Binance)":
-    simbolo = st.sidebar.text_input("Par (Símbolo)", value="BTCUSDT").upper()
+    # Obtenemos la lista dinámica de pares
+    with st.spinner("Cargando pares disponibles desde Binance..."):
+        lista_pares = obtener_pares_binance()
+    
+    # Buscamos un índice por defecto razonable (ej: BTCUSDT si existe)
+    default_idx = lista_pares.index("BTCUSDT") if "BTCUSDT" in lista_pares else 0
+    
+    simbolo = st.sidebar.selectbox("Par (Símbolo)", lista_pares, index=default_idx)
     intervalo = st.sidebar.selectbox("Temporalidad", ["1m", "5m", "15m", "1h", "4h", "1d"], index=3)
     limite = st.sidebar.slider("Cantidad de Velas", 50, 500, 150)
     
-    with st.spinner("Consultando datos de Binance..."):
+    with st.spinner(f"Consultando datos de {simbolo} en Binance..."):
         df = obtener_velas_binance(simbolo=simbolo, intervalo=intervalo, limite=limite)
         
     cg_data = obtener_datos_coingecko_global()
