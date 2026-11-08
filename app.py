@@ -4,6 +4,10 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from api_client import obtener_velas_binance, obtener_datos_forex, obtener_datos_coingecko_global, obtener_pares_binance, obtener_pares_forex
 from indicators import calcular_indicadores
+from streamlit_autorefresh import st_autorefresh
+
+# Refrescar automáticamente la app cada 5 segundos (5000 ms)
+st_autorefresh(interval=5000, limit=None, key="centinela_counter")
 
 # Configuración inicial de la página
 st.set_page_config(
