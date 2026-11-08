@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from api_client import obtener_velas_binance, obtener_datos_forex, obtener_datos_coingecko_global
+from indicators import calcular_indicadores
 
 # Configuración inicial de la página
 st.set_page_config(
@@ -18,7 +20,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🛡️ Crypto & Forex Sentinel")
-st.markdown("Centro de comando y vigilancia de mercados en tiempo real. Análisis técnico y alertas automatizadas sin riesgo.")
+st.markdown("Centro de comando y vigilancia de mercados en tiempo real. Análisis técnico avanzado y alertas automatizadas.")
 
 # --- BARRA LATERAL (CONTROLES) ---
 st.sidebar.header("⚙️ Configuración de Vigilancia")
@@ -32,7 +34,6 @@ if mercado == "Criptomonedas (Binance)":
     with st.spinner("Consultando datos de Binance..."):
         df = obtener_velas_binance(simbolo=simbolo, intervalo=intervalo, limite=limite)
         
-    # Datos globales de CoinGecko en el sidebar o expander
     cg_data = obtener_datos_coingecko_global()
     if cg_data:
         st.sidebar.markdown("---")
@@ -51,8 +52,8 @@ else:
 if df.empty:
     st.error("⚠️ No se pudieron recuperar datos con los parámetros seleccionados.")
 else:
-    # Indicadores técnicos sencillos (SMA 20)
-    df['sma20'] = df['close'].rolling(window=20).mean()
+    # Aplicar motor de indicadores técnicos avanzados
+    df = calcular_indicadores(df)
 
     precio_actual = df['close'].iloc[-1]
     precio_anterior = df['close'].iloc[-2]
@@ -60,47 +61,68 @@ else:
     max_periodo = df['high'].max()
     min_periodo = df['low'].min()
     volumen_total = df['volume'].sum()
+    rsi_actual = df['rsi14'].iloc[-1] if 'rsi14' in df else 50
 
     # Panel de Métricas Superiores
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Precio Actual", f"${precio_actual:,.2f}", f"{cambio_pct:.2f}%")
     col2.metric("Máximo del Periodo", f"${max_periodo:,.2f}")
     col3.metric("Mínimo del Periodo", f"${min_periodo:,.2f}")
-    col4.metric("Volumen Operado", f"{volumen_total:,.0f}")
+    col4.metric("RSI (14)", f"{rsi_actual:.1f}")
 
     st.markdown("---")
 
-    # --- GRÁFICO DE VELAS CON SMA ---
-    st.subheader("📊 Gráfico de Velas y Media Móvil (SMA 20)")
+    # --- GRÁFICO TÉCNICO MULTI-PANE (Velas, EMAs, Bollinger y RSI) ---
+    st.subheader("📊 Gráfico Técnico Avanzado (EMAs, Bollinger & RSI)")
     
-    fig = go.Figure()
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
+                        vertical_spacing=0.05, row_heights=[0.75, 0.25])
     
-    # Velas
+    # 1. Velas OHLC
     fig.add_trace(go.Candlestick(
         x=df['timestamp'], open=df['open'], high=df['high'], low=df['low'], close=df['close'],
         name='OHLC', increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
-    ))
+    ), row=1, col=1)
     
-    # Línea SMA 20
-    fig.add_trace(go.Scatter(
-        x=df['timestamp'], y=df['sma20'], name='SMA 20', line=f"color='orange', width=1.5"
-    )) if 'sma20' in df else None
+    # 2. EMAs (9 y 21)
+    fig.add_trace(go.Scatter(x=df['timestamp'], y=df['ema9'], name='EMA 9', line=dict(color='#29b6f6', width=1.2)), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df['timestamp'], y=df['ema21'], name='EMA 21', line=dict(color='#ffa726', width=1.2)), row=1, col=1)
+
+    # 3. Bandas de Bollinger
+    fig.add_trace(go.Scatter(x=df['timestamp'], y=df['bollinger_upper'], name='Bollinger Superior', line=dict(color='rgba(255,255,255,0.3)', width=1, dash='dot')), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df['timestamp'], y=df['bollinger_lower'], name='Bollinger Inferior', line=dict(color='rgba(255,255,255,0.3)', width=1, dash='dot'), fill='tonexty', fillcolor='rgba(255,255,255,0.03)'), row=1, col=1)
+
+    # 4. Panel de RSI inferior
+    fig.add_trace(go.Scatter(x=df['timestamp'], y=df['rsi14'], name='RSI (14)', line=dict(color='#ab47bc', width=1.5)), row=2, col=1)
+    
+    # Líneas de referencia para sobrecompra (70) y sobreventa (30)
+    fig.add_hline(y=70, line_dash="dash", line_color="red", row=2, col=1)
+    fig.add_hline(y=30, line_dash="dash", line_color="green", row=2, col=1)
 
     fig.update_layout(
         template="plotly_dark",
         xaxis_rangeslider_visible=False,
-        height=550,
-        margin=dict(l=20, r=20, t=20, b=20)
+        height=700,
+        margin=dict(l=20, r=20, t=20, b=20),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # --- MOTOR DE ALERTAS TEMPRANAS ---
+    # --- MOTOR DE ALERTAS TEMPRANAS AVANZADO ---
     st.markdown("---")
     st.subheader("🚨 Panel de Alertas y Monitoreo Automático")
     
-    umbral_volatilidad = 2.5
-    if abs(cambio_pct) >= umbral_volatilidad:
-        st.warning(f"⚠️ **ALERTA DE VOLATILIDAD:** Movimiento brusco detectado de {cambio_pct:.2f}% en el último bloque.")
+    alertas = []
+    if abs(cambio_pct) >= 2.5:
+        alertas.append(f"⚠️ **Volatilidad Extrema:** Movimiento de {cambio_pct:.2f}% en la última vela.")
+    if rsi_actual >= 70:
+        alertas.append(f"🔥 **Sobrecompra (RSI > 70):** El activo marca {rsi_actual:.1f}, posible zona de agotamiento alcista.")
+    elif rsi_actual <= 30:
+        alertas.append(f"❄️ **Sobreventa (RSI < 30):** El activo marca {rsi_actual:.1f}, posible zona de rebote.")
+
+    if alertas:
+        for alerta in alertas:
+            st.warning(alerta)
     else:
-        st.success("✅ **Sistema en Guardia:** Mercado operando dentro de rangos normales de volatilidad.")
+        st.success("✅ **Sistema en Guardia:** Mercado operando en rangos estables sin alertas críticas de RSI o volatilidad.")
